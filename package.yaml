@@ -28,6 +28,7 @@ library:
   - gogol
   - gogol-core
   - gogol-compute
+  - gogol-logging
   - gogol-pubsub
   - random
   - gogol-storage

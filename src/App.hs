@@ -57,6 +57,12 @@ run = do
 --      run4 config
     Nothing -> die "error"
 
+exampleDiskResizeOS = do
+  (_, Just hout, _, _) <- createProcess (proc "sudo" ["parted", "/dev/sda", "resizepart", "1", "yes", "100%"]) { cwd = Just ".", std_out = CreatePipe }
+  b <- hGetContents hout
+  print b
+  (_, Just hout, _, _) <- createProcess (proc "sudo" ["parted", "/dev/sda", "resizepart", "1", "yes", "100%"]) { cwd = Just ".", std_out = CreatePipe }
+
 exampleDiskResize p d z = do
   lgr <- Google.newLogger Google.Debug stdout
   env <- Google.newEnv <&> (Google.envLogger .~ lgr) . (Google.envScopes .~ Compute.computeScope)

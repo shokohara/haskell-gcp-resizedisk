@@ -41,13 +41,14 @@ import Network.Google.Compute.Metadata
 import Network.Google.Resource.Compute.Disks.Get
 import Network.Google.Resource.Compute.Disks.Resize
 import Network.Google.Compute.Types
+import Control.Concurrent
 
 run :: IO ()
 run = do
   mConfig <- run2
   case mConfig of
     Just config -> do
-      exampleDiskResize (C.project config) "shokoharatest" "asia-northeast1-a"
+      exampleDiskResizeOS
 --      exampleGetDisks (C.project config) "shokoharatest" "asia-northeast1-a"
 --      exampleInstanceId
 --      testUuid
@@ -58,10 +59,12 @@ run = do
     Nothing -> die "error"
 
 exampleDiskResizeOS = do
-  (_, Just hout, _, _) <- createProcess (proc "sudo" ["parted", "/dev/sda", "resizepart", "1", "yes", "100%"]) { cwd = Just ".", std_out = CreatePipe }
+  (_, Just hout, _, _) <- createProcess (proc "sudo" ["parted", "/dev/sda", "resizepart", "1", "yes", "100%"]) { std_out = CreatePipe }
   b <- hGetContents hout
   print b
-  (_, Just hout, _, _) <- createProcess (proc "sudo" ["parted", "/dev/sda", "resizepart", "1", "yes", "100%"]) { cwd = Just ".", std_out = CreatePipe }
+  (_, Just hout, _, _) <- createProcess (proc "sudo" ["resize2fs", "/dev/sda1"]) { std_out = CreatePipe }
+  b <- hGetContents hout
+  print b
 
 exampleDiskResize p d z = do
   lgr <- Google.newLogger Google.Debug stdout
@@ -138,3 +141,11 @@ testStorage config = do
     Google.send $ objectsList $ C.bucket config
   print $ show r
 
+
+a = ""
+b = ""
+--loop = forever $ do
+--  print "a"
+--  threadDelay (100*1000)
+--
+--

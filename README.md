@@ -1,1 +1,0 @@
-# haskell-gcp-resizedisk

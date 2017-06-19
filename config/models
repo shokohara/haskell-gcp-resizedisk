@@ -1,0 +1,65 @@
+User
+  name Text
+  password Text
+  UniqueUser name
+  deriving Eq Read Show
+
+Subject
+  name Text
+  createdAt UTCTime
+  updatedAt UTCTime
+  deletedAt UTCTime Maybe
+  UniqueSubjectName name
+  deriving Eq Read Show
+
+Role
+  name Text
+  createdAt UTCTime
+  updatedAt UTCTime
+  deletedAt UTCTime Maybe
+  UniqueRoleName name
+  deriving Eq Read Show
+
+Permission
+  name Text
+  createdAt UTCTime
+  updatedAt UTCTime
+  deletedAt UTCTime Maybe
+  UniquePermissionName name
+  deriving Eq Read Show
+
+Action
+  name Text
+  resource Resource
+  operation Operation
+  createdAt UTCTime
+  updatedAt UTCTime
+  deletedAt UTCTime Maybe
+  deriving Eq Read Show
+
+SubjectRole
+  subjectId SubjectId
+  roleId RoleId
+  createdAt UTCTime
+  updatedAt UTCTime
+  deletedAt UTCTime Maybe
+  UniqueSubjectRole subjectId roleId
+  deriving Eq Read Show
+
+RolePermission
+  roleId RoleId
+  permissionId PermissionId
+  createdAt UTCTime
+  updatedAt UTCTime
+  deletedAt UTCTime Maybe
+  UniqueRolePermisssion roleId permissionId
+  deriving Eq Read Show
+
+PermissionAction
+  permissionId PermissionId
+  actionId ActionId
+  createdAt UTCTime
+  updatedAt UTCTime
+  deletedAt UTCTime Maybe
+  UniquePermissionAction permissionId actionId
+  deriving Eq Read Show

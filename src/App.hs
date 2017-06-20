@@ -48,7 +48,8 @@ run = do
   mConfig <- run2
   case mConfig of
     Just config -> do
-      exampleDiskResizeOS
+      storategy
+--      exampleDiskResizeOS
 --      exampleGetDisks (C.project config) "shokoharatest" "asia-northeast1-a"
 --      exampleInstanceId
 --      testUuid
@@ -77,6 +78,16 @@ exampleGetDisks p d z = do
   env <- Google.newEnv <&> (Google.envLogger .~ lgr) . (Google.envScopes .~ Compute.computeReadOnlyScope)
   r <- runResourceT . Google.runGoogle env $ Google.send $ disksGet p d z
   print r
+
+storategy = do
+  (_, Just df, _, ph1) <- createProcess (proc "df" ["/dev/sda1",  "tail", "1", "yes", "100%"]) { std_out = CreatePipe }
+  (_, Just tl, _, ph2) <- createProcess (proc "tail" ["-n", "1"]) { std_out = CreatePipe, std_in = UseHandle df }
+  (_, Just awk, _, ph3) <- createProcess (proc "awk" ["'{print $5}'"]) { std_in = UseHandle tl }
+  waitForProcess ph1
+  waitForProcess ph2
+  waitForProcess ph3
+  b <- hGetContents awk
+  print $ reverse . drop 1 . reverse $ b
 
 exampleInstanceId :: IO ()
 exampleInstanceId = do
@@ -140,7 +151,6 @@ testStorage config = do
   r <- runResourceT . Google.runGoogle env $ do
     Google.send $ objectsList $ C.bucket config
   print $ show r
-
 
 a = ""
 b = ""

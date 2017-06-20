@@ -10,44 +10,27 @@ extra-source-files:
 - README.md
 library:
   source-dirs: src
+  ghc-options: -Wall
   exposed-modules:
   - App
   - Option
   dependencies:
   - base >=4.7 && <5
-  - bytestring
-  - yaml
-  - aeson
-  - aeson-casing
   - process
-  - servant-server
   - text
-  - monad-logger
-  - transformers
-  - wai-logger
-  - aeson-pretty
   - gogol
-  - gogol-core
   - gogol-compute
-  - gogol-logging
-  - gogol-pubsub
-  - random
   - gogol-storage
   - http-client
-  - conduit
-  - conduit-extra
   - lens
   - resourcet
-  - here
-  - lens-aeson
-  - HDBC
-  - HTTP
-  - uuid
 executables:
   resizedisk-exe:
     main: Main.hs
     source-dirs: app
     ghc-options:
+    - -Wall
+    - -O2
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
@@ -55,10 +38,6 @@ executables:
     - base
     - resizedisk
     - optparse-applicative
-    - wai-logger
-    - wai
-    - text
-    - warp
 tests:
   resizedisk-test:
     main: Spec.hs
@@ -72,10 +51,4 @@ tests:
     - resizedisk
     - hspec
     - hspec-discover
-    - hspec-wai
-    - hspec-wai-json
-    - aeson
-    - http-types
-    - bytestring
-    - QuickCheck
-    - quickcheck-text
+

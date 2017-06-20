@@ -3,6 +3,7 @@ sudo apt-get update
 sudo apt-get install -y git
 
 curl -sSL https://get.haskellstack.org/ | sh
+stack upgrade
 
 git clone --depth=1 https://github.com/shokohara/haskell-gcp-resizedisk.git
 cd haskell-gcp-resizedisk

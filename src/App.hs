@@ -7,6 +7,8 @@ import Data.String.Here
 import Control.Lens ((&), (.~), (<&>), (?~), (^.), (^..), (^?))
 import Data.Text (Text)
 import Network.Google
+import GHC.Int
+import Control.Monad
 import Network.Google.Compute
 import Control.Monad.Trans.Resource (liftResourceT, runResourceT)
 import Network.Google.Compute.Types
@@ -31,7 +33,9 @@ import qualified Data.Yaml as Y
 import Data.Yaml.Config
 import Data.Yaml (FromJSON(..), (.:))
 import Config
+import Option
 import qualified Config as C
+import qualified Option as O
 import System.Exit
 import Data.Conduit (($$+-))
 import qualified Data.Conduit.Binary as Conduit
@@ -48,7 +52,8 @@ run = do
   mConfig <- run2
   case mConfig of
     Just config -> do
-      storategy
+      print ""
+--      storategy >>= print
 --      exampleDiskResizeOS
 --      exampleGetDisks (C.project config) "shokoharatest" "asia-northeast1-a"
 --      exampleInstanceId
@@ -59,41 +64,72 @@ run = do
 --      run4 config
     Nothing -> die "error"
 
+run10 :: Option -> IO ()
+run10 config = storategy (O.percent config) (fromIntegral $ O.gb config) >>= \x ->
+  case x of
+    Just gb -> do
+      instanceId <- exampleInstanceId
+      projectId <- exampleProjectId
+      zone <- exampleZone
+      diskNameM <- exampleGetDisks projectId instanceId zone
+      case diskNameM of
+        Just diskName -> do
+          _ <- exampleDiskResizeGCP projectId diskName zone gb
+          exampleDiskResizeOS
+        Nothing -> print "no Disk"
+    Nothing -> return ()
+
+exampleDiskResizeOS :: IO ()
 exampleDiskResizeOS = do
-  (_, Just hout, _, _) <- createProcess (proc "sudo" ["parted", "/dev/sda", "resizepart", "1", "yes", "100%"]) { std_out = CreatePipe }
-  b <- hGetContents hout
-  print b
-  (_, Just hout, _, _) <- createProcess (proc "sudo" ["resize2fs", "/dev/sda1"]) { std_out = CreatePipe }
-  b <- hGetContents hout
+  (_, Just parted, _, _) <- createProcess (proc "sudo" ["parted", "/dev/sda", "resizepart", "1", "yes", "100%"]) { std_out = CreatePipe }
+  a <- hGetContents parted
+  print a
+  (_, Just resize2fs, _, _) <- createProcess (proc "sudo" ["resize2fs", "/dev/sda1"]) { std_out = CreatePipe }
+  b <- hGetContents resize2fs
   print b
 
-exampleDiskResize p d z = do
+exampleDiskResizeGCP :: Text -> Text -> Text -> GHC.Int.Int64 -> IO Operation
+exampleDiskResizeGCP p d z gb = do
   lgr <- Google.newLogger Google.Debug stdout
   env <- Google.newEnv <&> (Google.envLogger .~ lgr) . (Google.envScopes .~ Compute.computeScope)
-  r <- runResourceT . Google.runGoogle env $ Google.send $ disksResize p d z (disksResizeRequest & drrSizeGb ?~ 10)
-  print r
+  runResourceT . Google.runGoogle env $ Google.send $ disksResize p d z (disksResizeRequest & drrSizeGb ?~ gb)
 
+exampleGetDisks :: Text -> Text -> Text -> IO (Maybe Text)
 exampleGetDisks p d z = do
   lgr <- Google.newLogger Google.Debug stdout
   env <- Google.newEnv <&> (Google.envLogger .~ lgr) . (Google.envScopes .~ Compute.computeReadOnlyScope)
-  r <- runResourceT . Google.runGoogle env $ Google.send $ disksGet p d z
-  print r
+  flip (^.) dName <$> (runResourceT . Google.runGoogle env $ Google.send $ disksGet p d z)
 
-storategy = do
+
+storategy :: Float -> Int64 -> IO (Maybe Int64)
+storategy a b = (\x -> if a < (fromIntegral x * 100) then Just b else Nothing) <$> used
+
+-- return 0-100 percent
+used :: IO Int
+used = do
   (_, Just df, _, ph1) <- createProcess (proc "df" ["/dev/sda1"]) { std_out = CreatePipe }
   (_, Just tl, _, ph2) <- createProcess (proc "tail" ["-n", "1"]) { std_out = CreatePipe, std_in = UseHandle df }
-  (_, Just awk, _, ph3) <- createProcess (proc "awk" ["'{print $5}'"]) { std_in = UseHandle tl }
+  (_, Just awk, _, ph3) <- createProcess (proc "awk" ["{print $5}"]) { std_out = CreatePipe, std_in = UseHandle tl }
+  c <- hGetContents awk
   waitForProcess ph1
   waitForProcess ph2
   waitForProcess ph3
-  b <- hGetContents awk
-  print $ reverse . drop 1 . reverse $ b
+  return $ (read :: String -> Int) $ reverse . drop 2 . reverse $ c -- drop "%\n"
 
-exampleInstanceId :: IO ()
+exampleInstanceId :: IO Text
 exampleInstanceId = do
   m <- newManager defaultManagerSettings
-  isGCE m >>= print
-  getInstanceId m >>= print
+  isGCE m >>= \x -> if x then getInstanceId m else fail "no GCE"
+
+exampleProjectId :: IO Text
+exampleProjectId = do
+  m <- newManager defaultManagerSettings
+  isGCE m >>= \x -> if x then getProjectId m else fail "no GCE"
+
+exampleZone :: IO Text
+exampleZone = do
+  m <- newManager defaultManagerSettings
+  isGCE m >>= \x -> if x then getZone m else fail "no GCE"
 
 newUUID :: IO UUID
 newUUID = randomIO
@@ -152,10 +188,7 @@ testStorage config = do
     Google.send $ objectsList $ C.bucket config
   print $ show r
 
-a = ""
-b = ""
---loop = forever $ do
---  print "a"
---  threadDelay (100*1000)
---
---
+loop :: Option -> IO b
+loop c = forever $ do
+  run10 c
+  threadDelay (1 * 1000000)

@@ -12,6 +12,7 @@ library:
   source-dirs: src
   exposed-modules:
   - App
+  - Option
   dependencies:
   - base >=4.7 && <5
   - bytestring
@@ -53,6 +54,7 @@ executables:
     dependencies:
     - base
     - resizedisk
+    - optparse-applicative
     - wai-logger
     - wai
     - text

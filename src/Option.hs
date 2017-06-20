@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Config where
+module Option where
 
 import Data.Char
 import Data.String.Here
@@ -30,12 +30,8 @@ import qualified Data.Yaml as Y
 import Data.Yaml (FromJSON(..), (.:))
 import GHC.Int
 
-data Config =  Config {
-          project :: Text
-            , bucket :: Text
-            , directory :: Text
-            , subscription  :: Text
+data Option =  Option {
+                      gb :: Int64
+                      , percent :: Float
                       } deriving (Eq, Show, Generic)
-
-instance FromJSON Config
 

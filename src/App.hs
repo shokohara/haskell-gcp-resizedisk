@@ -80,7 +80,7 @@ exampleGetDisks p d z = do
   print r
 
 storategy = do
-  (_, Just df, _, ph1) <- createProcess (proc "df" ["/dev/sda1",  "tail", "1", "yes", "100%"]) { std_out = CreatePipe }
+  (_, Just df, _, ph1) <- createProcess (proc "df" ["/dev/sda1"]) { std_out = CreatePipe }
   (_, Just tl, _, ph2) <- createProcess (proc "tail" ["-n", "1"]) { std_out = CreatePipe, std_in = UseHandle df }
   (_, Just awk, _, ph3) <- createProcess (proc "awk" ["'{print $5}'"]) { std_in = UseHandle tl }
   waitForProcess ph1

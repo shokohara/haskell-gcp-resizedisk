@@ -1,4 +1,6 @@
-sudo: false
+sudo: required
+dist: trusty
+group: edge
 language: c
 services:
   - docker

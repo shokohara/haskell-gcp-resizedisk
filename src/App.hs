@@ -33,12 +33,10 @@ run :: Option -> IO ()
 run config = storategy (O.percent config) (fromIntegral $ O.gb config) >>= \x ->
   case x of
     Just gbR -> do
-      projectId <- exampleProjectId
-      zoneR <- exampleZone
-      diskNameM <- listToMaybe <$> exampleListDisks
-      _ <- print projectId
-      _ <- print zoneR
-      _ <- print diskNameM
+      m <- newManager defaultManagerSettings
+      projectId <- exampleProjectId m
+      zoneR <- exampleZone m
+      diskNameM <- listToMaybe <$> exampleListDisks m
       case diskNameM of
         Just disks -> do
           gbM <- exampleGetDisks projectId (deviceName disks) zoneR
@@ -68,14 +66,11 @@ getDisk :: MonadIO m => Manager -> m [MetaDisk]
 getDisk m = do
   rs <- getMetadata "instance/disks/?alt=json&recursive=true" [] m
   case eitherDecode' (Client.responseBody rs) of
-    Left  _  -> pure []
+    Left  _  -> fail "fail to decode"
     Right xs -> pure xs
 
---[{"deviceName":"instance-1","index":0,"mode":"READ_WRITE","type":"PERSISTENT"}]
-exampleListDisks :: IO [MetaDisk]
-exampleListDisks = do
-  m <- newManager defaultManagerSettings
-  isGCE m >>= \x -> if x then getDisk m else fail "no GCE"
+exampleListDisks :: Manager -> IO [MetaDisk]
+exampleListDisks m = isGCE m >>= \x -> if x then getDisk m else fail "no GCE"
 
 exampleGetDisks :: Text -> Text -> Text -> IO (Maybe Int64)
 exampleGetDisks p d z = do
@@ -98,18 +93,9 @@ used = do
   _ <- waitForProcess ph3
   return $ (read :: String -> Int) $ reverse . drop 2 . reverse $ c -- drop "%\n"
 
--- exampleInstanceId :: IO Text
--- exampleInstanceId = do
---   m <- newManager defaultManagerSettings
---   isGCE m >>= \x -> if x then getInstanceId m else fail "no GCE"
+exampleProjectId :: Manager -> IO Text
+exampleProjectId m = isGCE m >>= \x -> if x then getProjectId m else fail "no GCE"
 
-exampleProjectId :: IO Text
-exampleProjectId = do
-  m <- newManager defaultManagerSettings
-  isGCE m >>= \x -> if x then getProjectId m else fail "no GCE"
-
-exampleZone :: IO Text
-exampleZone = do
-  m <- newManager defaultManagerSettings
-  T.reverse . T.takeWhile (\x -> x /= '/') . T.reverse <$> (isGCE m >>= \x -> if x then getZone m else fail "no GCE")
+exampleZone :: Manager -> IO Text
+exampleZone m = (T.reverse . T.takeWhile (\x -> x /= '/') . T.reverse) <$> (isGCE m >>= \x -> if x then getZone m else fail "no GCE")
 

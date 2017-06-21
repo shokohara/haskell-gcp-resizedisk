@@ -8,7 +8,7 @@ addons:
     packages:
     - libgmp-dev
 before_install:
-- ci/before_intall.sh
+- ci/before_install.sh
 script:
 - ci/script.sh
 deploy:

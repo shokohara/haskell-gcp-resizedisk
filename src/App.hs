@@ -23,6 +23,7 @@ import Network.HTTP.Client
 import Network.Google.Compute.Metadata
 import Data.Text (Text)
 import qualified Data.Text as T
+import Control.Monad
 
 data MetaDisk = MetaDisk { deviceName :: Text } deriving (Show, Generic)
 
@@ -40,7 +41,10 @@ run config = storategy (O.percent config) (fromIntegral $ O.gb config) >>= \x ->
       _ <- print diskNameM
       case diskNameM of
         Just disks -> do
-          _ <- exampleDiskResizeGCP projectId (deviceName disks) zoneR gbR
+          gbM <- exampleGetDisks projectId (deviceName disks) zoneR
+          case gbM of
+            Just gbRR -> void $ exampleDiskResizeGCP projectId (deviceName disks) zoneR (gbR + gbRR)
+            Nothing -> putStrLn "no Disk"
           exampleDiskResizeOS
         Nothing -> putStrLn "no Disk"
     Nothing -> return ()
@@ -73,11 +77,11 @@ exampleListDisks = do
   m <- newManager defaultManagerSettings
   isGCE m >>= \x -> if x then getDisk m else fail "no GCE"
 
-exampleGetDisks :: Text -> Text -> Text -> IO (Maybe Text)
+exampleGetDisks :: Text -> Text -> Text -> IO (Maybe Int64)
 exampleGetDisks p d z = do
   lgr <- Google.newLogger Google.Debug stdout
   envR <- Google.newEnv <&> (Google.envLogger .~ lgr) . (Google.envScopes .~ Compute.computeReadOnlyScope)
-  flip (^.) dName <$> (runResourceT . Google.runGoogle envR $ Google.send $ disksGet p d z)
+  flip (^.) dSizeGb <$> (runResourceT . Google.runGoogle envR $ Google.send $ disksGet p d z)
 
 storategy :: Float -> Int64 -> IO (Maybe Int64)
 storategy a b = (\x -> if a < (fromIntegral x * 100) then Just b else Nothing) <$> used

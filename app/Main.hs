@@ -2,12 +2,10 @@
 module Main where
 
 import App
-import Control.Monad
 import Options.Applicative
 import Data.Semigroup ((<>))
 import Option
 import GHC.Int
-import Control.Concurrent
 
 percentOpt :: Parser Float
 percentOpt = option auto (long "percent" <> help "Float")
@@ -24,9 +22,5 @@ opts = info (sample <**> helper) ( fullDesc
     <> header "hello - a test for optparse-applicative" )
 
 main :: IO ()
-main = do
-  options <- execParser opts
-  forever $ do
-    _ <- App.run options
-    threadDelay (10 * 1000000)
+main = execParser opts >>= run
 

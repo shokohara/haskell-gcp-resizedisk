@@ -2,5 +2,5 @@
 
 # haskell-gcp-resizedisk
 
-`curl -fsSL $(curl -s https://api.github.com/repos/porjo/staticserve/releases/latest | jq --raw-output '.assets[0] | .browser_download_url') | sh`
-
+`curl -fsSL $(curl -s https://api.github.com/repos/porjo/staticserve/releases/latest | jq --raw-output '.assets[0] | .browser_download_url') | tar xz`
+`curl -sL https:`curl -sL https://api.github.com/repos/shokohara/haskell-gcp-resizedisk/releases/latest | egrep '/.*/.*/.*tar.gz' -o` | tar xz| tar xz`

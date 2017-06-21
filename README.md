@@ -7,5 +7,6 @@ curl -fsSL "$(curl -s https://api.github.com/repos/shokohara/haskell-gcp-diskres
 ```
 
 ```
-curl -fsSL "https:$(curl -sL https://api.github.com/repos/shokohara/haskell-gcp-resizedisk/releases/latest | egrep '/.*/.*/.*tar.gz' -o`)" | tar xz
+curl -fsSL "https:$(curl -sL https://api.github.com/repos/shokohara/haskell-gcp-resizedisk/releases/latest | egrep '/.*/.*/.*tar.gz' -o)" | tar xz
 ```
+

@@ -1,5 +1,6 @@
 /*.cabal
-.stack-work/
-config.yaml
-input
-output
+/.stack-work/
+/*.tags
+/resizedisk_linux_amd64
+/resizedisk_linux_amd64.tar.gz
+/docker.db

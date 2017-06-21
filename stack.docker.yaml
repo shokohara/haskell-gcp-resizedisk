@@ -1,4 +1,8 @@
 resolver: lts-8.19
+docker:
+  enable: true
+  auto-pull: true
+  set-user: true
 packages:
 - '.'
 extra-deps: []

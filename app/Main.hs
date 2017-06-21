@@ -28,5 +28,5 @@ main = do
   options <- execParser opts
   forever $ do
     _ <- App.run options
-    threadDelay (1 * 1000000)
+    threadDelay (10 * 1000000)
 

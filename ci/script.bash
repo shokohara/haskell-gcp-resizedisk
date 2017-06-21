@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 export PATH=$HOME/.local/bin:$PATH
 script_dir=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)/..
 echo $script_dir

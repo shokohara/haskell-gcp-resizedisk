@@ -3,7 +3,7 @@
 # haskell-gcp-resizedisk
 
 ```
-curl -fsSL "$(curl -s https://api.github.com/repos/shokohara/haskell-gcp-diskresize/releases/latest | jq --raw-output '.assets[0] | .browser_download_url')"| tar xz
+curl -fsSL "$(curl -s https://api.github.com/repos/shokohara/haskell-gcp-resizedisk/releases/latest | jq --raw-output '.assets[0] | .browser_download_url')"| tar xz
 ```
 
 ```

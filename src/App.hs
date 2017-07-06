@@ -24,28 +24,31 @@ import Network.Google.Compute.Metadata
 import Data.Text (Text)
 import qualified Data.Text as T
 import Control.Monad
+import Debug.Trace
 
 data MetaDisk = MetaDisk { deviceName :: Text } deriving (Show, Generic)
 
 instance FromJSON MetaDisk
 
 run :: Option -> IO ()
-run config = storategy (O.percent config) (fromIntegral $ O.gb config) >>= \x ->
-  case x of
-    Just gbR -> do
-      m <- newManager defaultManagerSettings
-      projectId <- exampleProjectId m
-      zoneR <- exampleZone m
-      diskNameM <- listToMaybe <$> exampleListDisks m
-      case diskNameM of
-        Just disks -> do
-          gbM <- exampleGetDisks projectId (deviceName disks) zoneR
-          case gbM of
-            Just gbRR -> void $ exampleDiskResizeGCP projectId (deviceName disks) zoneR (gbR + gbRR)
-            Nothing -> putStrLn "no Disk"
-          exampleDiskResizeOS
-        Nothing -> putStrLn "no Disk"
-    Nothing -> return ()
+run config = strategy (O.percent config) >>= \x ->
+  if x then do
+    m <- newManager defaultManagerSettings
+    projectId <- exampleProjectId m
+    zoneR <- exampleZone m
+    diskNameM <- listToMaybe <$> exampleListDisks m
+    _ <- traceIO $ show diskNameM
+    case diskNameM of
+      Just disks -> do
+        gbM <- exampleGetDisks projectId (deviceName disks) zoneR
+        _ <- traceIO $ show gbM
+        _ <- traceIO $ show (O.percent config)
+        case gbM of
+          Just gbRR -> void $ exampleDiskResizeGCP projectId (deviceName disks) zoneR ((fromIntegral $ O.gb config) + gbRR)
+          Nothing -> putStrLn "no Disk"
+        exampleDiskResizeOS
+      Nothing -> putStrLn "no Disk"
+  else return ()
 
 exampleDiskResizeOS :: IO ()
 exampleDiskResizeOS = do
@@ -78,8 +81,8 @@ exampleGetDisks p d z = do
   envR <- Google.newEnv <&> (Google.envLogger .~ lgr) . (Google.envScopes .~ Compute.computeReadOnlyScope)
   flip (^.) dSizeGb <$> (runResourceT . Google.runGoogle envR $ Google.send $ disksGet p d z)
 
-storategy :: Float -> Int64 -> IO (Maybe Int64)
-storategy a b = (\x -> if a < (fromIntegral x * 100) then Just b else Nothing) <$> used
+strategy :: Float -> IO Bool
+strategy a = (\x -> a < (fromIntegral x * 100)) <$> used
 
 -- return 0-100 percent
 used :: IO Int

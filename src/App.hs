@@ -81,8 +81,14 @@ exampleGetDisks p d z = do
   envR <- Google.newEnv <&> (Google.envLogger .~ lgr) . (Google.envScopes .~ Compute.computeReadOnlyScope)
   flip (^.) dSizeGb <$> (runResourceT . Google.runGoogle envR $ Google.send $ disksGet p d z)
 
+--strategy :: Float -> IO Bool
+--strategy a = (\x -> a < (fromIntegral x * 100)) <$> used
+
 strategy :: Float -> IO Bool
-strategy a = (\x -> a < (fromIntegral x * 100)) <$> used
+strategy a = do
+  x <- used
+  _ <- traceIO $ "used" ++ show x
+  return $ (a * 100) < (fromIntegral x)
 
 -- return 0-100 percent
 used :: IO Int

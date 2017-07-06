@@ -3,6 +3,7 @@
 
 module App where
 
+import Control.Concurrent
 import Control.Lens ((&), (.~), (<&>), (?~), (^.))
 import Network.Google
 import Control.Monad.IO.Class  (MonadIO (..))
@@ -46,6 +47,7 @@ run config = strategy (O.percent config) >>= \x ->
         case gbM of
           Just gbRR -> void $ exampleDiskResizeGCP projectId (deviceName disks) zoneR ((fromIntegral $ O.gb config) + gbRR)
           Nothing -> putStrLn "no Disk"
+        threadDelay 10000000
         exampleDiskResizeOS
       Nothing -> putStrLn "no Disk"
   else return ()
